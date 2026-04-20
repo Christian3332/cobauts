@@ -2,7 +2,7 @@ const express = require('express');
 const usersController = require('./users-controller');
 const auth = require('../../../core/auth-middleware');
 
-module.exports = () => {
+module.exports = (app) => {
   const router = express.Router();
 
   //public

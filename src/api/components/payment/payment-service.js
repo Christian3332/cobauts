@@ -12,9 +12,10 @@ exports.topUp = async (userId, amount) => {
   });
 };
 
+
 // Fungsi ini tidak punya route sendiri, tapi dipanggil oleh TransportService
 exports.potongSaldoOtomatis = async (userId, amount, orderId) => {
-  const user = await usersRepository.cariLewatId(userId);
+  const user = await usersRepository.getUserById(userId);
   
   // Cek apakah saldo cukup
   if (user.balance < amount) {
@@ -32,6 +33,31 @@ exports.potongSaldoOtomatis = async (userId, amount, orderId) => {
     description: `Pembayaran otomatis order: ${orderId}`
   });
 };
+
+exports.refundBalance = async (userId, amount) => {
+  // 1. Validasi: Pastikan jumlah yang direfund masuk akal
+  if (!amount || amount <= 0) {
+    throw new Error('Jumlah refund tidak valid');
+  }
+
+
+  // 2. Panggil repository untuk mengeksekusi penambahan saldo
+  const updatedUser = await paymentRepository.tambahSaldoUser(userId, amount);
+
+
+  // 3. Jika user ternyata tidak ada di database
+  if (!updatedUser) {
+    throw new Error('User tidak ditemukan, gagal mengembalikan saldo');
+  }
+
+
+  // (Opsional) Jika Anda punya tabel/schema riwayat transaksi,
+  // Anda bisa menambahkan kode untuk mencatat "Refund Order" di sini.
+
+
+  return updatedUser;
+};
+
 
 exports.getHistory = async (userId) => {
   // Kita panggil fungsi cariRiwayatUser yang sudah kita buat di repository
