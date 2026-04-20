@@ -1,11 +1,11 @@
 const transportService = require('./transport-service');
 
-exports.getTypes = async (req, res) => {
+async function getTypes (req, res) {
   const types = transportService.getTipeKendaraan();
   res.json(types);
 };
 
-exports.estimate = async (req, res) => {
+async function estimate (req, res) {
   try {
     const { type, distance } = req.body;
     const estimasi = transportService.hitungEstimasi(type, distance);
@@ -15,7 +15,7 @@ exports.estimate = async (req, res) => {
   }
 };
 
-exports.request = async (req, res) => {
+async function request (req, res) {
   try {
     // req.user.id didapat dari token login
     const order = await transportService.prosesRequestOrder(req.user.id, req.body);
@@ -28,7 +28,7 @@ exports.request = async (req, res) => {
   }
 };
 
-exports.getDetail = async (req, res) => {
+async function getDetail (req, res) {
   try {
     const order = await transportService.detailOrder(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
@@ -38,16 +38,28 @@ exports.getDetail = async (req, res) => {
   }
 };
 
-exports.cancel = async (req, res) => {
+async function cancel (req, res, next) {
   try {
-    await transportService.batalinOrder(req.params.id);
-    res.json({ message: 'Order berhasil dibatalkan' });
+    // 1. Ambil ID dari URL (Ini yang bikin error 500 tadi!)
+    const id = req.params.id;
+
+
+    // 2. Lempar ID tersebut ke Service untuk diproses
+    const result = await transportService.batalinOrder(id);
+   
+    // 3. Kembalikan response sukses ke Postman/EchoAPI
+    return res.status(200).json({
+      statusCode: 200,
+      message: 'Order berhasil dibatalkan dan saldo dikembalikan',
+      data: result
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    // Kalau ada error (misal order tidak ketemu), lempar ke error handler
+    next(error);
   }
 };
 
-exports.completeOrder = async (req, res) => {
+async function completeOrder (req, res) {
   try {
     const order = await transportService.selesaikanOrder(req.params.id);
     res.json({ message: 'Perjalanan selesai!', data: order });
@@ -56,7 +68,7 @@ exports.completeOrder = async (req, res) => {
   }
 };
 
-exports.getHistory = async (req, res) => {
+async function getHistory (req, res) {
   try {
     // req.user.id didapat dari token yang kamu masukkan di header
     const history = await transportService.getUserHistory(req.user.id);
@@ -69,7 +81,7 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-exports.getAllHistory = async (req, res) => {
+async function getAllHistory (req, res) {
   try {
     // Panggil fungsi repository yang baru kita buat tadi
     const allHistory = await transportService.getAllHistoryAdmin();
@@ -80,4 +92,15 @@ exports.getAllHistory = async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
+};
+
+module.exports = {
+  getTypes,
+  estimate,
+  request,
+  getDetail,
+  cancel,
+  completeOrder,
+  getHistory,
+  getAllHistory,
 };

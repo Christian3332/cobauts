@@ -1,31 +1,42 @@
 const { User } = require('../../../models');
 
-exports.simpan = async (data) => {
-  return await User.create(data);
-};
 
-exports.cariLewatEmail = async (email) => {
+async function createUser(username, email, password, fullName) {
+  return User.create({ username, email, password, fullName });
+}
+
+async function getUserByEmail (email) {
   return await User.findOne({ email: email });
 };
 
-exports.cariLewatId = async (id) => {
+async function getUserById (id) {
   return await User.findById(id);
 };
 
-exports.update = async (id, data) => {
+async function update (id, data) {
   return User.findByIdAndUpdate(id, data, { new: true });
 };
 
-exports.gantiPassword = async (id, passwordBaru) => {
+async function gantiPassword (id, passwordBaru) {
   return User.findByIdAndUpdate(id, { password: passwordBaru });
 };
 
-exports.getUserOrders = async (userId) => {
+async function getUserOrders (userId) {
   return await Transport.find({ userId }).sort({ createdAt: -1 });
 };
 
-exports.tambahSaldo = async (id, nominal) => {
+async function tambahSaldo (id, nominal) {
   return await User.findByIdAndUpdate(id, { $inc: { balance: nominal } }, { new: true });
+};
+
+module.exports = {
+  createUser,
+  getUserByEmail,
+  getUserById,
+  update,
+  gantiPassword,
+  getUserOrders,
+  tambahSaldo,
 };
 
 

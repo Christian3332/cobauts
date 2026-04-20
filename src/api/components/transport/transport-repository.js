@@ -1,23 +1,31 @@
 const { Transport } = require('../../../models');
 
-exports.buatOrderBaru = async (data) => {
-  return Transport.create(data);
+async function buatOrderBaru (dataOrder) {
+  return Transport.create(dataOrder);
 };
 
-exports.ambilOrderLewatId = async (id) => {
+async function ambilOrderLewatId (id) {
   return Transport.findById(id).populate('userId', 'fullName email').populate('driverId', 'fullName');
 };
 
-exports.updateStatusOrder = async (id, status) => {
+async function updateStatusOrder (id, status) {
   return Transport.findByIdAndUpdate(id, { status: status }, { new: true });
 };
 
-exports.getUserOrders = async (userId) => {
+async function getUserOrders (userId) {
   return await Transport.find({ userId: userId })  
     .sort({ createdAt: -1 });
 };
 
-exports.getAllOrdersForAdmin = async () => {
+async function getAllOrdersForAdmin () {
   return await Transport.find()
     .sort({ createdAt: -1 });
+};
+
+module.exports = {
+  buatOrderBaru,
+  ambilOrderLewatId,
+  updateStatusOrder,
+  getUserOrders,
+  getAllOrdersForAdmin
 };
