@@ -3,7 +3,6 @@ const { User } = require('../../models');
 const bcrypt = require('bcryptjs'); 
 require('dotenv').config();
 
-// Gunakan nama 'drivers' secara konsisten
 const drivers = [
   {
     fullName: "Rizky (Driver Bike 1)",
@@ -43,21 +42,18 @@ const seedDrivers = async () => {
       console.log("Connected to MongoDB...");
     }
 
-    // FIX 1: Gunakan nama variabel 'drivers' yang benar
     const hashedDrivers = await Promise.all(drivers.map(async (driver) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(driver.password, salt);
       return { ...driver, password: hashedPassword };
     }));
 
-    // Hapus data lama agar tidak duplikat
     await User.deleteMany({ username: { $in: drivers.map(d => d.username) } });
     console.log("Old test drivers cleared.");
 
-    // FIX 2: Masukkan 'hashedDrivers' ke Database, BUKAN 'drivers'
     const createdDrivers = await User.insertMany(hashedDrivers);
     
-    console.log("\n--- COPY ID BERIKUT KE constants.js ---");
+    console.log("\nCOPY ID BERIKUT KE constants.js");
     createdDrivers.forEach(d => {
       console.log(`${d.fullName} -> ID: ${d._id}`);
     });

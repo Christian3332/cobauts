@@ -1,22 +1,14 @@
-const Payment = require('../../../models/payment-schema');
+const { Payment } = require("../../../models");
 
-exports.buatTransaksi = async (data) => {
-  return await Payment.create(data);
-};
+async function createTransaction(userId, type, amount, description) {
+  return Payment.create({ userId, type, amount, description });
+}
 
-exports.cariRiwayatUser = async (userId) => {
-  return await Payment.find({ userId }).sort({ createdAt: -1 });
-};
+async function getUserHistory(userId) {
+  return Payment.find({ userId }).sort({ createdAt: -1 }); //untuk mengurutkan data secara descending dari yang paling baru ke paling lama
+}
 
-exports.tambahSaldoUser = async (userId, amount) => {
-  // Trik Jitu: Kita ambil model User yang SUDAH dicetak oleh sistem Anda.
-  // Gunakan mongoose.model('User') dengan SATU parameter saja untuk mengambil data, bukan membuat baru.
-  const User = mongoose.model('User');
-
-
-  return await User.findByIdAndUpdate(
-    userId,
-    { $inc: { balance: amount } },
-    { new: true }
-  );
+module.exports = {
+  createTransaction,
+  getUserHistory,
 };

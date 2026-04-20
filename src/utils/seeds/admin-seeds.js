@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 const { User } = require('../../models');
-const bcrypt = require('bcryptjs'); // Tambahkan bcrypt untuk hash password
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const adminData = {
   fullName: "Super Admin UTS",
   email: "admin@mail.com",
-  password: "admin123", // Nanti di-hash
+  password: "admin123",
   username: "admin_utama",
-  role: "admin" // Kunci perbedaannya di sini
+  role: "admin"
 };
 
 const seedAdmin = async () => {
@@ -19,17 +19,15 @@ const seedAdmin = async () => {
       console.log("Connected to MongoDB for Admin Seeding...");
     }
 
-    // Hapus admin lama biar tidak duplikat
     await User.deleteMany({ username: adminData.username });
     console.log("Old admin cleared.");
 
-    // HASH PASSWORD: Penting! Kalau tidak di-hash, admin tidak akan bisa login
     const salt = await bcrypt.genSalt(10);
     adminData.password = await bcrypt.hash(adminData.password, salt);
 
     const createdAdmin = await User.create(adminData);
     
-    console.log("\n--- ADMIN BERHASIL DIBUAT ---");
+    console.log("\nADMIN BERHASIL DIBUAT");
 
 
     setTimeout(() => {

@@ -1,5 +1,5 @@
   module.exports = {
-    // Masukkan ID yang muncul di terminal kamu tadi ke sini
+    // List Driver
     LIST_DRIVER_BIKE: [
       "69e2314618889d6dfee62a8d",
       "69e2314618889d6dfee62a8e"
@@ -10,8 +10,8 @@
       "69e2314618889d6dfee62a90"
     ],
 
-    // Data ini untuk referensi harga dan nama tipe
-    TIPE_KENDARAAN: {
+    // Data harga dan kendaraan
+    VEHICLE_TYPE: {
       bike: { 
         nama: 'Motor', 
         hargaPerKm: 2500 

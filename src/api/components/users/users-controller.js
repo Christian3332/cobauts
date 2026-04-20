@@ -1,153 +1,149 @@
-const usersService = require('./users-service');
-const { errorResponder, errorTypes } = require('../../../core/errors');
-const { hashPassword } = require('../../../utils/password');
+const usersService = require("./users-service");
+const { errorResponder, errorTypes } = require("../../../core/errors");
+const { hashPassword, passwordMatched } = require("../../../utils/password");
 
-//Register
-async function register(req, res, next) {
+async function register(request, response, next) {
   try {
-    const{
-      username,
-      email,
-      password,
-      fullName,
-    } = req.body;
+    const { username, email, password, fullName } = request.body;
 
-    //email harus terisi
-    if(!email){
-      throw errorResponder(errorTypes.VALIDATION_ERROR, 'Email is required');
+    if (!email) {
+      throw errorResponder(
+        errorTypes.VALIDATION_ERROR, 
+        "Email is required");
     }
 
-    //fullname harus terisi
-     if (!fullName) {
+    if (!fullName) {
       throw errorResponder(
         errorTypes.VALIDATION_ERROR,
-        'Full name is required'
+        "Full name is required",
       );
     }
 
-    // Email must be unique
     if (await usersService.emailExists(email)) {
       throw errorResponder(
         errorTypes.EMAIL_ALREADY_TAKEN,
-        'Email already exists'
+        "Email already exists",
       );
     }
 
-    // The password is at least 8 characters long
     if (password.length < 8) {
       throw errorResponder(
         errorTypes.VALIDATION_ERROR,
-        'Password must be at least 8 characters long'
+        "Password must be at least 8 characters long",
       );
     }
 
-    // Hash the password before saving it to the database
     const hashedPassword = await hashPassword(password);
-
-    // Create the user
     const success = await usersService.createUser(
       username,
       email,
       hashedPassword,
-      fullName
+      fullName,
     );
 
     if (!success) {
       throw errorResponder(
         errorTypes.UNPROCESSABLE_ENTITY,
-        'Failed to create user'
+        "Failed to create user",
       );
     }
 
-    return res.status(201).json({ message: 'User created successfully' });
+    return response.status(201).json({ message: "User created successfully" });
   } catch (error) {
     return next(error);
   }
 }
 
-//login
-async function login (req, res, next) {
+async function login(request, response, next) {
   try {
     const { 
       email, 
-      password,
-    } = req.body;
+      password 
+    } = request.body;
 
     const loginResult = await usersService.checkLogin(email, password);
 
     if (!loginResult) {
       throw errorResponder(
         errorTypes.INVALID_CREDENTIALS,
-        'Wrong email or passwod'
+        "Wrong email or password",
       );
     }
-    return res.status(200).json(loginResult);
+
+    return response.status(200).json(loginResult);
   } catch (error) {
     return next(error);
   }
 }
 
-async function getProfile (req, res, next) {
+async function getProfile(request, response, next) {
   try {
-    const user = await usersService.getProfile(req.user.id);
+    const user = await usersService.getProfile(request.user.id);
 
     if (!user) {
-      throw errorResponder(
-        errorTypes.UNPROCESSABLE_ENTITY, 'User not found'
-      );
+      throw errorResponder(errorTypes.UNPROCESSABLE_ENTITY, "User not found");
     }
-    
-    return res.status(200).json(user);
+
+    return response.status(200).json(user);
   } catch (error) {
     return next(error);
   }
 }
 
-
-async function history (req, res, next) {
+async function edit(request, response, next) {
   try {
-    // req.user.id didapat dari middleware auth
-    const historyData = await usersService.getHistory(req.user.id);
+    const update = await usersService.editUser(request.user.id, request.body);
 
-    //penambahan
-    if(!historyData) {
+    if (!update) {
       throw errorResponder(
-        errorTypes.UNPROCESSABLE_ENTITY, 'history not available'
-      )
+        errorTypes.UNPROCESSABLE_ENTITY,
+        "Failed to update profile",
+      );
     }
 
-    return res.status(200).json(historyData);
+    return response.status(200).json({ message: "Profil berhasil diupdate", data: update });
   } catch (error) {
-    return next(error)
-  } 
-};
-
-async function edit (req, res) {
-  try {
-    const update = await usersService.editUser(req.user.id, req.body);
-    res.json({ message: 'Profil berhasil diupdate', data: update });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+    return next(error);
   }
 }
 
-async function changePassword (req, res) {
+async function changePassword(request, response, next) {
   try {
-    const { passwordBaru } = req.body;
-    await usersService.updatePassword(req.user.id, passwordBaru);
-    res.json({ message: 'Nicee password kamu telah diganti' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-// ... isi fungsi-fungsi kamu (register, login, dll) ...
+    const { 
+      old_password: oldPassword, 
+      new_password: newPassword 
+    } = request.body;
+    const user = await usersService.getProfile(request.user.id);
 
-// PASTIKAN INI ADA DI PALING BAWAH FILE
+    const isMatch = await passwordMatched(oldPassword, user.password);
+    if (!isMatch) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        "Old password does not match",
+      );
+    }
+
+    const success = await usersService.updatePassword(
+      request.user.id,
+      newPassword,
+    );
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        "Failed to change password",
+      );
+    }
+
+    return response.status(200).json({ message: "Nicee password kamu telah diganti" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   getProfile,
   edit,
   changePassword,
-  history
 };

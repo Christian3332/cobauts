@@ -1,9 +1,9 @@
 const express = require('express');
 const usersController = require('./users-controller');
 const auth = require('../../../core/auth-middleware');
+const router = express.Router();
 
-module.exports = (app) => {
-  const router = express.Router();
+module.exports = () => {
 
   //public
   router.post('/register', usersController.register);
@@ -11,7 +11,6 @@ module.exports = (app) => {
 
   //private
   router.get('/profile', auth, usersController.getProfile);
-  router.get('/history', auth, usersController.history);
   router.put('/edit', auth, usersController.edit);
   router.put('/change-password', auth, usersController.changePassword);
 

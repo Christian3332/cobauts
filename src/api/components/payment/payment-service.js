@@ -1,71 +1,46 @@
-// src/api/components/payment/payment-service.js
-const paymentRepository = require('./payment-repository');
-const usersRepository = require('../users/users-repository');
+const paymentRepository = require("./payment-repository");
+const usersRepository = require("../users/users-repository");
 
-exports.topUp = async (userId, amount) => {
-  await usersRepository.tambahSaldo(userId, amount);
-  return await paymentRepository.buatTransaksi({
+async function topUp(userId, amount) {
+  await usersRepository.updateBalance(userId, amount);
+
+  return paymentRepository.createTransaction(
     userId,
-    type: 'topup',
+    "topup",
     amount,
-    description: `Top up saldo sebesar ${amount}`
-  });
-};
+    `Top up saldo sebesar ${amount}`,
+  );
+}
 
-
-// Fungsi ini tidak punya route sendiri, tapi dipanggil oleh TransportService
-exports.potongSaldoOtomatis = async (userId, amount, orderId) => {
+async function processAutoPayment(userId, amount, orderId) {
   const user = await usersRepository.getUserById(userId);
-  
-  // Cek apakah saldo cukup
+
   if (user.balance < amount) {
-    throw new Error('Balance gak cukup, silakan top up dulu bos!');
+    throw new Error("Saldo tidak mencukupi");
   }
 
-  // Kurangi saldo
-  await usersRepository.tambahSaldo(userId, -amount);
+  await usersRepository.updateBalance(userId, -amount);
 
-  // Catat transaksi dengan keterangan orderId agar jelas duitnya buat apa
-  return await paymentRepository.buatTransaksi({
+  return paymentRepository.createTransaction(
     userId,
-    type: 'payment',
+    "payment",
     amount,
-    description: `Pembayaran otomatis order: ${orderId}`
-  });
-};
+    `Pembayaran otomatis order: ${orderId}`,
+  );
+}
 
-exports.refundBalance = async (userId, amount) => {
-  // 1. Validasi: Pastikan jumlah yang direfund masuk akal
-  if (!amount || amount <= 0) {
-    throw new Error('Jumlah refund tidak valid');
-  }
+async function getHistory(userId) {
+  const history = await paymentRepository.getUserHistory(userId);
 
-
-  // 2. Panggil repository untuk mengeksekusi penambahan saldo
-  const updatedUser = await paymentRepository.tambahSaldoUser(userId, amount);
-
-
-  // 3. Jika user ternyata tidak ada di database
-  if (!updatedUser) {
-    throw new Error('User tidak ditemukan, gagal mengembalikan saldo');
-  }
-
-
-  // (Opsional) Jika Anda punya tabel/schema riwayat transaksi,
-  // Anda bisa menambahkan kode untuk mencatat "Refund Order" di sini.
-
-
-  return updatedUser;
-};
-
-
-exports.getHistory = async (userId) => {
-  // Kita panggil fungsi cariRiwayatUser yang sudah kita buat di repository
-  const history = await paymentRepository.cariRiwayatUser(userId);
-  
   if (!history) {
-    return []; // Kalau kosong kasih array kosong aja biar gak error di frontend
+    return [];
   }
 
   return history;
+}
+
+module.exports = {
+  topUp,
+  processAutoPayment,
+  getHistory,
 };
