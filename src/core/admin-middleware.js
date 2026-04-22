@@ -1,10 +1,14 @@
-module.exports = (req, res, next) => {
-  console.log('--- CEK ROLE USER ---');
-  console.log('User Data:', req.user); // Liat di terminal, ada gak role: "admin"?
+const { errorResponder, errorTypes } = require("./errors");
 
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'Akses Ditolak!' });
+module.exports = (request, response, next) => {
+  if (request.user && request.user.role === "admin") {
+    return next();
   }
+
+  return next(
+    errorResponder(
+      errorTypes.FORBIDDEN,
+      "Akses ditolak! Halaman ini hanya untuk Admin.",
+    ),
+  );
 };

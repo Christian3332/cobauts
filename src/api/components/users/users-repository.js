@@ -5,7 +5,7 @@ async function createUser(username, email, password, fullName) {
 }
 
 async function getUserByEmail(email) {
-  return User.findOne({ email });
+  return User.findOne({ email: email });
 }
 
 async function getUserById(id) {
@@ -23,7 +23,7 @@ async function changePassword(id, hashedPassword) {
   );
 }
 
-async function tambahSaldo(id, nominal) {
+async function updateBalance(id, nominal) {
   return User.findByIdAndUpdate(
     id,
     { $inc: { balance: nominal } },
@@ -37,5 +37,5 @@ module.exports = {
   getUserById,
   update,
   changePassword,
-  tambahSaldo,
+  updateBalance,
 };

@@ -1,6 +1,6 @@
 module.exports = (db) =>
   db.model(
-    "Users",
+    "User",
     db.Schema({
         username: { 
           type: String, 

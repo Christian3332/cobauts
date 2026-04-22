@@ -1,16 +1,16 @@
 module.exports = (db) =>
   db.model(
-    "Transports",
+    "Transport",
     db.Schema(
       {
         userId: {
           type: db.Schema.Types.ObjectId,
-          ref: "Users",
+          ref: "User",
           required: true,
         },
         driverId: {
           type: db.Schema.Types.ObjectId,
-          ref: "Users",
+          ref: "User",
           required: false,
           default: null,
         },
@@ -36,13 +36,11 @@ module.exports = (db) =>
         },
         paymentMethod: {
           type: String,
-          enum: ["cash", "saldo"],
-          default: "cash",
+          default: "e wallet",
         },
         paymentStatus: {
           type: String,
-          enum: ["pending", "paid", "failed"],
-          default: "pending",
+          default: "paid",
         },
         status: {
           type: String,

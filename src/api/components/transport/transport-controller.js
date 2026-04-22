@@ -3,7 +3,7 @@ const { errorResponder, errorTypes } = require("../../../core/errors");
 
 async function getTypes(request, response, next) {
   try {
-    const types = transportService.getTypes();
+    const types = await transportService.getTypes();
     return response.status(200).json(types);
   } catch (error) {
     return next(error);
@@ -21,7 +21,7 @@ async function estimate(request, response, next) {
       );
     }
 
-    const estimate = transportService.countEstimate(type, distance);
+    const estimate = await transportService.countEstimate(type, distance);
     return response.status(200).json(estimate);
   } catch (error) {
     return next(error);
@@ -30,15 +30,34 @@ async function estimate(request, response, next) {
 
 async function requestOrder(request, response, next) {
   try {
+    const { type, origin, destination, distance, price } = request.body;
+
+    if (!type || !origin || !destination || !distance || !price) {
+      throw errorResponder(
+        errorTypes.VALIDATION_ERROR,
+        "Semua data pesanan (type, origin, destination, distance, price) wajib diisi",
+      );
+    }
+
     const userId = request.user.id;
-    const order = await transportService.processRequestOrder(
-      userId,
-      request.body,
-    );
+    const orderResult = await transportService.processRequestOrder(userId, {
+      type,
+      origin,
+      destination,
+      distance,
+      price,
+    });
+
+    if (!orderResult) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        "Gagal memproses pesanan driver",
+      );
+    }
 
     return response.status(201).json({
       message: "Driver berhasil ditemukan!",
-      data: order,
+      data: orderResult,
     });
   } catch (error) {
     return next(error);
@@ -62,7 +81,7 @@ async function getDetail(request, response, next) {
 async function cancel(request, response, next) {
   try {
     const id = request.params.id;
-    const result = await transportService.batalinOrder(id);
+    const result = await transportService.cancelOrder(id);
 
     return response.status(200).json({
       message: "Order berhasil dibatalkan dan saldo dikembalikan",

@@ -92,16 +92,31 @@ async function getProfile(request, response, next) {
 
 async function edit(request, response, next) {
   try {
-    const update = await usersService.editUser(request.user.id, request.body);
+    const { username, fullName } = request.body;
 
-    if (!update) {
+    if (!username || !fullName) {
+      throw errorResponder(
+        errorTypes.VALIDATION_ERROR,
+        "Username and Full Name are required",
+      );
+    }
+
+    const updateResult = await usersService.editUser(request.user.id, {
+      username,
+      fullName,
+    });
+
+    if (!updateResult) {
       throw errorResponder(
         errorTypes.UNPROCESSABLE_ENTITY,
         "Failed to update profile",
       );
     }
 
-    return response.status(200).json({ message: "Profil berhasil diupdate", data: update });
+    return response.status(200).json({
+      message: "Profil berhasil diupdate",
+      data: updateResult,
+    });
   } catch (error) {
     return next(error);
   }
@@ -110,8 +125,8 @@ async function edit(request, response, next) {
 async function changePassword(request, response, next) {
   try {
     const { 
-      old_password: oldPassword, 
-      new_password: newPassword 
+      oldPassword, 
+      newPassword 
     } = request.body;
     const user = await usersService.getProfile(request.user.id);
 

@@ -1,15 +1,24 @@
-const jwt = require('jsonwebtoken');
-const SECRET = 'KELOMPOK_8';
+const jwt = require("jsonwebtoken");
+const { errorResponder, errorTypes } = require("./errors");
 
-module.exports = (req, res, next) => {
-  let token = req.headers['authorization'];
-  if (!token) return res.status(401).json({ error: 'Token missing' });
+const SECRET = "KELOMPOK_8";
+
+module.exports = (request, response, next) => {
+  const token = request.headers["authorization"];
+
+  if (!token) {
+    return next(errorResponder(errorTypes.UNAUTHORIZED, "Token missing"));
+  }
 
   try {
     const decoded = jwt.verify(token, SECRET);
-    req.user = decoded; // Ini akan berisi { id, role } sesuai service kamu
-    next();
-  } catch (err) {
-    res.status(403).json({ error: 'Token lo salah atau udah basi.' });
+
+    request.user = decoded;
+
+    return next();
+  } catch (error) {
+    return next(
+      errorResponder(errorTypes.FORBIDDEN, "Token invalid or expired"),
+    );
   }
 };

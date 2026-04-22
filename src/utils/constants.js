@@ -14,11 +14,11 @@
     VEHICLE_TYPE: {
       bike: { 
         nama: 'Motor', 
-        hargaPerKm: 2500 
+        pricePerKm: 2500 
       },
       car: { 
         nama: 'Mobil', 
-        hargaPerKm: 5000 
+        pricePerKm: 5000 
       }
     }
   };

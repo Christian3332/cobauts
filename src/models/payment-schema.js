@@ -1,11 +1,11 @@
 module.exports = (db) =>
   db.model(
-    "Payments",
+    "Payment",
     db.Schema(
       {
         userId: {
           type: db.Schema.Types.ObjectId,
-          ref: "Users",
+          ref: "User",
           required: true,
         },
         type: {
